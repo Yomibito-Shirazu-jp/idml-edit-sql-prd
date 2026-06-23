@@ -1,0 +1,26 @@
+name: render-pdf-self-hosted
+
+on:
+  workflow_dispatch:
+
+jobs:
+  render:
+    runs-on: [self-hosted, indesign]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Render PDF with local InDesign environment
+        shell: bash
+        run: |
+          echo "This job requires a self-hosted runner with InDesign/InDesign Server."
+          echo "Place your render command here, for example calling ExtendScript or InDesign Server."
+          test -f output/idml/generated.idml
+          mkdir -p output/pdf
+          # Example placeholder:
+          # indesign-render output/idml/generated.idml output/pdf/generated.pdf
+      - name: Commit PDF
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: render generated pdf
+          file_pattern: output/pdf/*.pdf

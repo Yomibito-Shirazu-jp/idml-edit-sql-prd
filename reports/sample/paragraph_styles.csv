@@ -1,0 +1,40 @@
+﻿id,idml_label,style_name,observed_count,observed_in_editable_candidate
+1,template_v2,$ID/NormalParagraphStyle,60,0
+2,template_v2,01-01 章 第◯章,8,8
+3,template_v2,01-01 章 タイトル,8,8
+4,template_v2,01-02 節 見出し,44,44
+5,template_v2,01-04 ■小見出し,83,83
+6,template_v2,01 本文,1549,1549
+7,template_v2,［基本設定］,9,7
+8,template_v2,［基本設定］［正規表現］,14,14
+9,template_v2,02 解説タイトル文,6,6
+10,template_v2,02 解説タイトルanc,6,6
+11,template_v2,02-03 解説 図タイトル,2,2
+12,generated_v3,$ID/NormalParagraphStyle,60,0
+13,generated_v3,01-01 章 第◯章,7,7
+14,generated_v3,01-01 章 タイトル,8,8
+15,generated_v3,01-02 節 数字,22,22
+16,generated_v3,01-02 節 見出し,22,22
+17,generated_v3,01-03 項 見出し,87,87
+18,generated_v3,01 本文,1269,1269
+19,generated_v3,02 解説タイトル文,12,12
+20,generated_v3,02-02 解説 本文,276,276
+21,generated_v3,02-01 解説見出し,16,16
+22,generated_v3,［基本設定］,9,7
+23,generated_v3,［基本設定］［正規表現］,14,14
+24,generated_v3,02 解説タイトルanc,6,6
+25,generated_v3,02-03 解説 図タイトル,2,2
+26,v1_internal_equiv,$ID/NormalParagraphStyle,60,0
+27,v1_internal_equiv,01-01 章 第◯章,7,7
+28,v1_internal_equiv,01-01 章 タイトル,8,8
+29,v1_internal_equiv,01-02 節 数字,22,22
+30,v1_internal_equiv,01-02 節 見出し,22,22
+31,v1_internal_equiv,01-03 項 見出し,87,87
+32,v1_internal_equiv,01 本文,1269,1269
+33,v1_internal_equiv,02 解説タイトル文,12,12
+34,v1_internal_equiv,02-02 解説 本文,276,276
+35,v1_internal_equiv,02-01 解説見出し,16,16
+36,v1_internal_equiv,［基本設定］,9,7
+37,v1_internal_equiv,［基本設定］［正規表現］,14,14
+38,v1_internal_equiv,02 解説タイトルanc,6,6
+39,v1_internal_equiv,02-03 解説 図タイトル,2,2

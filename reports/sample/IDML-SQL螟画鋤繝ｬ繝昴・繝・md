@@ -1,0 +1,228 @@
+# IDML-SQL変換レポート
+
+作成日時: 2026-06-23T20:11:33
+
+## 結論
+
+IDMLをSQLite台帳へ変換する方式は、この案件に適しています。確認できた範囲では、組版の固定要素はDB上でロック対象として管理し、本文差し替え対象は `Stories/*.xml` 内の段落/Contentスロットとして分離できます。
+
+今回のSQL化では、IDML内部ファイル、Story、段落、Content、段落スタイル、v5 Word由来の touch-only 原稿行を1つのSQLiteに格納しました。
+
+## 生成物
+
+- `pmi_idml_sql.sqlite`: SQLite台帳
+- `idml_variable_slots_candidate_v3.csv`: v3本文変数スロット候補
+- `story_paragraphs.csv`: IDML Story段落一覧
+- `content_slots.csv`: IDML `<Content>` 単位一覧
+- `touch_only_rows_v5.csv`: Word v5由来の触ってよい原稿行
+- `schema.sql`: DBスキーマ抜粋
+
+## 対象IDML
+
+| label | zip entries | story files | sha256 |
+|---|---:|---:|---|
+| template_v2 | 250 | 104 | `303800ba211f033b…` |
+| generated_v3 | 250 | 104 | `4a49c593f8598e5a…` |
+| v1_internal_equiv | 250 | 104 | `6fc5e252fa00e7e3…` |
+
+
+## v2/v3差分から見た編集対象
+
+v2/v3比較で差分が出た内部ファイルは `250` 件です。そのうち Story ファイルは `104` 件です。
+
+差分Story:
+
+- `Stories/Story_u1076.xml`
+- `Stories/Story_u1092.xml`
+- `Stories/Story_u10a9.xml`
+- `Stories/Story_u10c5.xml`
+- `Stories/Story_u10dc.xml`
+- `Stories/Story_u12c9.xml`
+- `Stories/Story_u12e3.xml`
+- `Stories/Story_u12fa.xml`
+- `Stories/Story_u1316.xml`
+- `Stories/Story_u132d.xml`
+- `Stories/Story_u151a.xml`
+- `Stories/Story_u1534.xml`
+- `Stories/Story_u154b.xml`
+- `Stories/Story_u1567.xml`
+- `Stories/Story_u157e.xml`
+- `Stories/Story_u175.xml`
+- `Stories/Story_u191a.xml`
+- `Stories/Story_u1934.xml`
+- `Stories/Story_u194b.xml`
+- `Stories/Story_u1967.xml`
+- `Stories/Story_u197e.xml`
+- `Stories/Story_u1b7.xml`
+- `Stories/Story_u1e32.xml`
+- `Stories/Story_u1e4c.xml`
+- `Stories/Story_u1e63.xml`
+- `Stories/Story_u1e7f.xml`
+- `Stories/Story_u1e96.xml`
+- `Stories/Story_u216.xml`
+- `Stories/Story_u2261.xml`
+- `Stories/Story_u227b.xml`
+- `Stories/Story_u2292.xml`
+- `Stories/Story_u22ae.xml`
+- `Stories/Story_u22c5.xml`
+- `Stories/Story_u259a.xml`
+- `Stories/Story_u25b1.xml`
+- `Stories/Story_u25ee.xml`
+- `Stories/Story_u260c.xml`
+- `Stories/Story_u2e92.xml`
+- `Stories/Story_u2ea9.xml`
+- `Stories/Story_u2f63.xml`
+- `Stories/Story_u2f87.xml`
+- `Stories/Story_u2fb2.xml`
+- `Stories/Story_u2fc9.xml`
+- `Stories/Story_u2fe8.xml`
+- `Stories/Story_u3000.xml`
+- `Stories/Story_u301e.xml`
+- `Stories/Story_u3035.xml`
+- `Stories/Story_u3053.xml`
+- `Stories/Story_u306b.xml`
+- `Stories/Story_u3190.xml`
+- `Stories/Story_u31ae.xml`
+- `Stories/Story_u326a.xml`
+- `Stories/Story_u3281.xml`
+- `Stories/Story_u32a0.xml`
+- `Stories/Story_u32b8.xml`
+- `Stories/Story_u32df.xml`
+- `Stories/Story_u32f6.xml`
+- `Stories/Story_u3315.xml`
+- `Stories/Story_u332c.xml`
+- `Stories/Story_u3350.xml`
+- `Stories/Story_u3367.xml`
+- `Stories/Story_u3484.xml`
+- `Stories/Story_u349f.xml`
+- `Stories/Story_u3576.xml`
+- `Stories/Story_u358d.xml`
+- `Stories/Story_u35c5.xml`
+- `Stories/Story_u35dd.xml`
+- `Stories/Story_u3603.xml`
+- `Stories/Story_u361a.xml`
+- `Stories/Story_u367a.xml`
+- `Stories/Story_u36a1.xml`
+- `Stories/Story_u36c5.xml`
+- `Stories/Story_u36dc.xml`
+- `Stories/Story_u3a5f.xml`
+- `Stories/Story_u3bd6.xml`
+- `Stories/Story_u3bed.xml`
+- `Stories/Story_u3fe3.xml`
+- `Stories/Story_u4006.xml`
+- `Stories/Story_u417b.xml`
+- `Stories/Story_u41a0.xml`
+- `Stories/Story_u4300.xml`
+- `Stories/Story_u46a4.xml`
+- `Stories/Story_u4bb4.xml`
+- `Stories/Story_u4d74.xml`
+- `Stories/Story_u5179.xml`
+- `Stories/Story_u5274.xml`
+- `Stories/Story_u5c69.xml`
+- `Stories/Story_u5ca2.xml`
+- `Stories/Story_u8be.xml`
+- `Stories/Story_u8d5.xml`
+- `Stories/Story_u8ec.xml`
+- `Stories/Story_u903.xml`
+- `Stories/Story_u91a.xml`
+- `Stories/Story_u93a.xml`
+- `Stories/Story_u955.xml`
+- `Stories/Story_u970.xml`
+- `Stories/Story_u987.xml`
+- `Stories/Story_uca5.xml`
+- `Stories/Story_ucbc.xml`
+- `Stories/Story_ud7b.xml`
+- `Stories/Story_ud92.xml`
+- `Stories/Story_uded.xml`
+- `Stories/Story_ufbb.xml`
+- `Stories/Story_ufd7.xml`
+
+
+この結果から、SQL台帳上の本番編集対象は、原則として上記 `Stories/*.xml` に限定できます。`Resources/Styles.xml`、`Spreads/*.xml`、`MasterSpreads/*.xml` はDBでは参照・検査対象であり、生成時の変更対象にしない設計が妥当です。
+
+## Story/Slot抽出結果（generated_v3）
+
+| story_file | paragraphs | content slots | text chars | changed |
+|---|---:|---:|---:|---:|
+| `Stories/Story_u154b.xml` | 328 | 367 | 27416 | 1 |
+| `Stories/Story_u987.xml` | 296 | 383 | 27249 | 1 |
+| `Stories/Story_u1e63.xml` | 336 | 366 | 25658 | 1 |
+| `Stories/Story_u10a9.xml` | 242 | 269 | 21275 | 1 |
+| `Stories/Story_u194b.xml` | 187 | 211 | 18800 | 1 |
+| `Stories/Story_u12fa.xml` | 210 | 225 | 18646 | 1 |
+| `Stories/Story_u2292.xml` | 114 | 114 | 7786 | 1 |
+| `Stories/Story_u3fe3.xml` | 1 | 75 | 438 | 1 |
+| `Stories/Story_u3bed.xml` | 1 | 38 | 328 | 1 |
+| `Stories/Story_u4300.xml` | 1 | 45 | 251 | 1 |
+| `Stories/Story_u417b.xml` | 1 | 14 | 178 | 1 |
+| `Stories/Story_u3bd6.xml` | 1 | 1 | 43 | 1 |
+| `Stories/Story_u4bb4.xml` | 1 | 1 | 31 | 1 |
+| `Stories/Story_u8be.xml` | 1 | 1 | 22 | 1 |
+| `Stories/Story_u41a0.xml` | 1 | 1 | 21 | 1 |
+| `Stories/Story_u93a.xml` | 1 | 1 | 21 | 1 |
+| `Stories/Story_u8d5.xml` | 1 | 1 | 20 | 1 |
+| `Stories/Story_u903.xml` | 1 | 1 | 20 | 1 |
+| `Stories/Story_u216.xml` | 1 | 1 | 19 | 1 |
+| `Stories/Story_u3484.xml` | 1 | 1 | 18 | 1 |
+
+
+## 段落スタイル観測（generated_v3 上位）
+
+| style | paragraphs | editable candidates |
+|---|---:|---:|
+| `01 本文` | 1269 | 1269 |
+| `02-02 解説 本文` | 276 | 276 |
+| `01-03 項 見出し` | 87 | 87 |
+| `$ID/NormalParagraphStyle` | 60 | 0 |
+| `01-02 節 数字` | 22 | 22 |
+| `01-02 節 見出し` | 22 | 22 |
+| `02-01 解説見出し` | 16 | 16 |
+| `［基本設定］［正規表現］` | 14 | 14 |
+| `02 解説タイトル文` | 12 | 12 |
+| `［基本設定］` | 9 | 7 |
+| `01-01 章 タイトル` | 8 | 8 |
+| `01-01 章 第◯章` | 7 | 7 |
+| `02 解説タイトルanc` | 6 | 6 |
+| `02-03 解説 図タイトル` | 2 | 2 |
+
+
+## Word v5 touch-only CSV 取り込み
+
+Word v5から作成済みの touch-only CSV もDBに取り込みました。これにより、Word側の原稿行とIDML側の変数スロットを `block_slot_map` 相当で対応づける準備ができます。
+
+| permission | rows |
+|---|---:|
+| `TEXT_ONLY_REPLACE` | 1696 |
+| `FOOTNOTE_TEXT_ONLY_REPLACE_ANCHOR_LOCKED` | 74 |
+
+
+## 推奨DB運用
+
+1. IDMLをSQLへインポートする。
+2. `story_paragraphs` / `content_slots` から変数スロット候補を作る。
+3. Word原稿を `touch_only_rows_v5` として取り込む。
+4. Word block と IDML slot を対応づける。
+5. 生成時は、`permission='TEXT_ONLY_REPLACE'` または脚注専用permissionの行だけを使う。
+6. `internal_files` のうち `Stories/*.xml` 以外は変更禁止として検査する。
+7. 生成後IDMLを再度SQL化し、ロック対象のSHAが変わっていないことを検証する。
+
+## SQLiteスキーマ要点
+
+- `idml_files`: IDMLファイル単位
+- `internal_files`: IDML ZIP内ファイル単位
+- `story_files`: Story XML単位
+- `story_paragraphs`: 段落単位の本文スロット候補
+- `content_slots`: `<Content>` 単位のより細かい置換候補
+- `paragraph_styles`: 観測された段落スタイル
+- `touch_only_rows_v5`: Word v5原稿側の触ってよい行
+- `changed_files_v2_v3`: v2/v3差分で変更された内部ファイル
+
+## 注意点
+
+- このレポートはIDMLのXML構造解析に基づくものです。InDesignレンダリング、オーバーフロー、禁則、改ページ、脚注の視覚配置は未検証です。
+- `<Content>` は1段落に複数出現する場合があります。文字スタイル・脚注・特殊文字が絡む箇所は、段落単位ではなくContent単位または脚注専用処理に切り分ける必要があります。
+- 生成時は `Stories/*.xml` だけを変更し、それ以外の内部ファイルSHAが一致することを必須検収にするのが安全です。
+
+## 次の実装単位
+
+次は `block_slot_map` を実テーブルとして作成し、Word v5の `touch_only_rows_v5.block_id` と IDML側 `story_paragraphs.slot_id` を対応づける段階です。その後、`generate_idml_from_sql.py` でSQLからIDMLを再生成できます。

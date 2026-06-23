@@ -1,0 +1,59 @@
+name: validate-idml-sql
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Prepare output directories
+        run: mkdir -p data output/reports output/idml output/pdf
+      - name: Import DOCX if present
+        shell: bash
+        run: |
+          shopt -s nullglob
+          for f in input/docx/*本文*.docx input/docx/*PMI*.docx; do
+            python scripts/import_docx_to_sql.py --docx "$f" --doc-type main --version ci --db data/workflow.sqlite || true
+          done
+          for f in input/docx/*座談会*.docx input/docx/*talk*.docx; do
+            python scripts/import_docx_to_sql.py --docx "$f" --doc-type roundtable --version ci --db data/workflow.sqlite || true
+          done
+      - name: Import IDML if present
+        shell: bash
+        run: |
+          shopt -s nullglob
+          for f in input/idml/*.idml; do
+            python scripts/import_idml_to_sql.py --idml "$f" --template-id ci_template --db data/workflow.sqlite || true
+          done
+      - name: Export editable CSV and QA report
+        run: |
+          python scripts/export_touch_only_csv.py --db data/workflow.sqlite --out output/reports/touch_only.csv
+          python scripts/validate_workflow.py --db data/workflow.sqlite --out output/reports/qa_report.md
+      - name: Generate IDML from placeholder template if present
+        shell: bash
+        run: |
+          if [ -f input/idml/template_variables.idml ]; then
+            python scripts/fill_idml_from_sql.py --template-idml input/idml/template_variables.idml --db data/workflow.sqlite --out-idml output/idml/generated.idml
+          else
+            echo "No input/idml/template_variables.idml found; skipped IDML generation."
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: idml-sql-output
+          path: |
+            data/workflow.sqlite
+            output/reports/
+            output/idml/
+            output/pdf/

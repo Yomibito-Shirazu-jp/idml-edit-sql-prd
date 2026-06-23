@@ -1,0 +1,4 @@
+﻿id,label,path,sha256,zip_entry_count,story_file_count,created_at
+1,template_v2,/mnt/data/04_本文PMI_v2.idml,303800ba211f033b330a731550716b87779d555bc3239695b5470ecf8e3f9340,250,104,2026-06-23T20:11:33.036373
+2,generated_v3,/mnt/data/本文PMI_v3.idml,4a49c593f8598e5a8d3d584b17195faa3aa90b6fd4358f0449158f60cc82d49e,250,104,2026-06-23T20:11:33.097572
+3,v1_internal_equiv,/mnt/data/02 本文 子会社売却のPMI-差し替えv1.idml,6fc5e252fa00e7e3ac146409213fa22e66d2f186ce30cdb6b70356f63624ea2f,250,104,2026-06-23T20:11:33.175839

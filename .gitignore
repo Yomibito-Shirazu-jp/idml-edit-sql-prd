@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.DS_Store
+*.log
+*.tmp
+
+# Large/source production inputs can be kept out of git unless intentionally added
+input/docx/*.docx
+input/idml/*.idml
+input/pdf/*.pdf
+
+# Generated database/artifacts
+data/*.sqlite
+output/idml/*.idml
+output/pdf/*.pdf
+output/reports/*.md
+output/reports/*.csv
+
+# Allow samples
+!reports/sample/**

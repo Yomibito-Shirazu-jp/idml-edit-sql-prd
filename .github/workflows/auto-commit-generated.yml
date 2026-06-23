@@ -1,0 +1,41 @@
+name: generate-and-commit
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Generate DB, CSV, QA, and IDML if possible
+        shell: bash
+        run: |
+          mkdir -p data output/reports output/idml output/pdf
+          shopt -s nullglob
+          for f in input/docx/*本文*.docx input/docx/*PMI*.docx; do
+            python scripts/import_docx_to_sql.py --docx "$f" --doc-type main --version manual --db data/workflow.sqlite || true
+          done
+          for f in input/docx/*座談会*.docx input/docx/*talk*.docx; do
+            python scripts/import_docx_to_sql.py --docx "$f" --doc-type roundtable --version manual --db data/workflow.sqlite || true
+          done
+          for f in input/idml/*.idml; do
+            python scripts/import_idml_to_sql.py --idml "$f" --template-id manual_template --db data/workflow.sqlite || true
+          done
+          python scripts/export_touch_only_csv.py --db data/workflow.sqlite --out output/reports/touch_only.csv
+          python scripts/validate_workflow.py --db data/workflow.sqlite --out output/reports/qa_report.md
+          if [ -f input/idml/template_variables.idml ]; then
+            python scripts/fill_idml_from_sql.py --template-idml input/idml/template_variables.idml --db data/workflow.sqlite --out-idml output/idml/generated.idml
+          fi
+      - name: Commit generated outputs
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: generate idml sql outputs
+          file_pattern: data/*.sqlite output/reports/* output/idml/* output/pdf/*

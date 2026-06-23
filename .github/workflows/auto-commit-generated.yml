@@ -10,32 +10,87 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
       - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Generate DB, CSV, QA, and IDML if possible
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+      - name: Generate outputs
         shell: bash
         run: |
+          set -euo pipefail
+
           mkdir -p data output/reports output/idml output/pdf
           shopt -s nullglob
-          for f in input/docx/*本文*.docx input/docx/*PMI*.docx; do
-            python scripts/import_docx_to_sql.py --docx "$f" --doc-type main --version manual --db data/workflow.sqlite || true
-          done
-          for f in input/docx/*座談会*.docx input/docx/*talk*.docx; do
-            python scripts/import_docx_to_sql.py --docx "$f" --doc-type roundtable --version manual --db data/workflow.sqlite || true
-          done
-          for f in input/idml/*.idml; do
-            python scripts/import_idml_to_sql.py --idml "$f" --template-id manual_template --db data/workflow.sqlite || true
-          done
-          python scripts/export_touch_only_csv.py --db data/workflow.sqlite --out output/reports/touch_only.csv
-          python scripts/validate_workflow.py --db data/workflow.sqlite --out output/reports/qa_report.md
-          if [ -f input/idml/template_variables.idml ]; then
-            python scripts/fill_idml_from_sql.py --template-idml input/idml/template_variables.idml --db data/workflow.sqlite --out-idml output/idml/generated.idml
+
+          if [ -f templates/pmi_template_variables.idml ] && [ -f idml_variable_map.csv ]; then
+            echo "CSV variable pipeline detected."
+            python scripts/fill_idml_from_csv.py \
+              --template templates/pmi_template_variables.idml \
+              --csv idml_variable_map.csv \
+              --output output/idml/pmi_filled.idml \
+              --report output/reports/fill_report.md
+
+            python scripts/validate_idml_placeholders.py \
+              --idml output/idml/pmi_filled.idml \
+              --csv idml_variable_map.csv \
+              --expected-remaining 0 \
+              --out output/reports/placeholder_validation.md
+          else
+            echo "CSV variable inputs not found. Falling back to SQL exploration pipeline."
+            docx_count=0
+            idml_count=0
+
+            for f in input/docx/*本文*.docx input/docx/*PMI*.docx; do
+              docx_count=$((docx_count + 1))
+              python scripts/import_docx_to_sql.py --docx "$f" --doc-type main --version manual --db data/workflow.sqlite
+            done
+
+            for f in input/docx/*座談会*.docx input/docx/*talk*.docx; do
+              docx_count=$((docx_count + 1))
+              python scripts/import_docx_to_sql.py --docx "$f" --doc-type roundtable --version manual --db data/workflow.sqlite
+            done
+
+            for f in input/idml/*.idml; do
+              idml_count=$((idml_count + 1))
+              python scripts/import_idml_to_sql.py --idml "$f" --template-id manual_template --db data/workflow.sqlite
+            done
+
+            if [ "$docx_count" -eq 0 ] && [ "$idml_count" -eq 0 ]; then
+              cat > output/reports/qa_report.md <<'EOF'
+          # QA Report
+
+          No CSV variable inputs or SQL exploration inputs were found.
+
+          To run the CSV variable pipeline, add:
+
+          - `templates/pmi_template_variables.idml`
+          - `idml_variable_map.csv`
+
+          To run the SQL exploration pipeline, add files under:
+
+          - `input/docx/`
+          - `input/idml/`
+          EOF
+            else
+              python scripts/export_touch_only_csv.py --db data/workflow.sqlite --out output/reports/touch_only.csv
+              python scripts/validate_workflow.py --db data/workflow.sqlite --out output/reports/qa_report.md
+
+              if [ -f input/idml/template_variables.idml ]; then
+                python scripts/fill_idml_from_sql.py --template-idml input/idml/template_variables.idml --db data/workflow.sqlite --out-idml output/idml/generated.idml
+              fi
+            fi
           fi
+
       - name: Commit generated outputs
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: generate idml sql outputs
+          commit_message: generate idml outputs
           file_pattern: data/*.sqlite output/reports/* output/idml/* output/pdf/*
